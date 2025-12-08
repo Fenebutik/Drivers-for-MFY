@@ -60,7 +60,7 @@ while ($true) {
             [Console]::ReadKey($true) | Out-Null
         }
         '2' {
-    $DriverName = "Kyocera Ecosys P2040DN"
+    $DriverName = "KyoceraEcosysP2040DN"
     # Ссылка на страницу файла в Яндекс.Диске
     $DownloadPageUrl = "https://disk.yandex.ru/d/YFavU20LUBodgA"
 
@@ -82,6 +82,7 @@ while ($true) {
         }
     }
 }
+
 
 
 
