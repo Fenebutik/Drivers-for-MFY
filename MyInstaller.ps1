@@ -45,10 +45,9 @@ function Write-VendorBlock {
 
 function Write-PrinterItem {
     param([int]$Number, [string]$Vendor, [string]$Model)
-    $text = "$Vendor $Model"
     Write-Host ("    {0,2}" -f $Number) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
-    Write-Host $text -ForegroundColor White
+    Write-Host "$Vendor $Model" -ForegroundColor White
 }
 
 # Список ВСЕХ пунктов меню в порядке их отображения.
@@ -56,12 +55,12 @@ function Write-PrinterItem {
 $AllMenuItems = @(
     # ПУНКТ 1: Существующий специальный драйвер Kyocera TWAIN
     @{
-        DisplayText = "Kyocera TWAIN Driver";
+        DisplayText = "Kyocera TWAIN Driver"
         Action = '1' # Это триггер для switch в старой логике
     }
     # ПУНКТ 2: Существующий специальный драйвер для открытия в браузере
     @{
-        DisplayText = "Kyocera Ecosys P2040DN (браузер)";
+        DisplayText = "Kyocera Ecosys P2040DN (браузер)"
         Action = '2' # Это триггер для switch в старой логике
     }
 )
@@ -70,9 +69,8 @@ $AllMenuItems = @(
 $itemCounter = $AllMenuItems.Count + 1
 foreach ($vendor in $PrintersByVendor.Keys) {
     foreach ($model in $PrintersByVendor[$vendor]) {
-        $fullName = "$vendor $model"
         $AllMenuItems += @{
-            DisplayText = $fullName;
+            DisplayText = "$vendor $model"
             Action = 'NEW_PRINTER' # Маркер для новых пунктов (пока без своей логики)
             Vendor = $vendor
             Model = $model
@@ -87,9 +85,9 @@ while ($true) {
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
 
     # Вывод наших двух первых "особых" пунктов
-    Write-Host "  ┌───────────────────────┐" -ForegroundColor DarkMagenta
+    Write-Host "  ┌─────────────────────────────┐" -ForegroundColor DarkMagenta
     Write-Host "  │   Специальные драйверы   │" -ForegroundColor Magenta
-    Write-Host "  └───────────────────────┘" -ForegroundColor DarkMagenta
+    Write-Host "  └─────────────────────────────┘" -ForegroundColor DarkMagenta
     for ($i = 0; $i -lt 2; $i++) {
         Write-Host ("    {0,2}" -f ($i + 1)) -NoNewline -ForegroundColor Green
         Write-Host " │ " -NoNewline -ForegroundColor Gray
@@ -110,12 +108,12 @@ while ($true) {
     }
 
     # Вывод пункта "Выход"
-    Write-Host "  ════════════════════════════" -ForegroundColor DarkGray
+    Write-Host "  ════════════════════════════════" -ForegroundColor DarkGray
     Write-Host ("    {0,2}" -f 0) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
     Write-Host "Выход" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  ════════════════════════════" -ForegroundColor DarkCyan
+    Write-Host "  ════════════════════════════════" -ForegroundColor DarkCyan
 
     # Запрос выбора
     $choice = Read-Host "`n  Введите номер пункта"
@@ -132,8 +130,6 @@ while ($true) {
             Write-Host ""
 
             # ВАЖНО: Здесь старое ядро логики.
-            # Если Action = '1' или '2', выполняем старые проверенные блоки кода.
-            # Если Action = 'NEW_PRINTER', пока просто сообщаем, что функция в разработке.
             switch ($selectedItem.Action) {
                 '1' {
                     # --- СТАРЫЙ ПРОВЕРЕННЫЙ БЛОК ДЛЯ ПУНКТА '1' (Kyocera TWAIN) ---
@@ -171,9 +167,9 @@ while ($true) {
                     }
                 }
                 'NEW_PRINTER' {
-                    # --- ЗАГЛУШКА ДЛЯ НОВЫХ ПРИНТЕРОВ (логику добавить позже) ---
+                    # --- ЗАГЛУШКА ДЛЯ НОВЫХ ПРИНТЕРОВ ---
                     Write-Host "[Инфо] Функция установки для этого принтера в разработке." -ForegroundColor Yellow
-                    Write-Host "      Чтобы добавить драйвер, обновите хэш-таблицу `$DriverUrls`" -ForegroundColor Gray
+                    Write-Host "      Чтобы добавить драйвер, обновите хэш-таблицу DriverUrls" -ForegroundColor Gray
                 }
             }
             Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
@@ -186,4 +182,3 @@ while ($true) {
         }
     }
 }
-
