@@ -11,6 +11,9 @@ while ($true) {
     Write-Host ""
     Write-Host "     1. Kyocera TWAIN Driver" -ForegroundColor Yellow
     Write-Host ""
+    Write-Host ""
+    Write-Host "     2. Kyocera EcosysP2040DN" -ForegroundColor Yellow
+    Write-Host ""
     Write-Host "     0. Выход" -ForegroundColor Gray
     Write-Host ""
     Write-Host "================================" -ForegroundColor Green
@@ -82,6 +85,7 @@ while ($true) {
         }
     }
 }
+
 
 
 
