@@ -62,7 +62,7 @@ while ($true) {
         '2' {
     $DriverName = "Kyocera Ecosys P2040DN"
     # Ссылка на страницу файла в Яндекс.Диске
-    $DownloadPageUrl = "https://disk.yandex.ru/d/xP_Jv6XVIArEGg"
+    $DownloadPageUrl = "https://disk.yandex.ru/d/YFavU20LUBodgA"
 
     Write-Host "`n[Инфо] Выбран: $DriverName" -ForegroundColor Yellow
     Write-Host "[Инфо] Открываю страницу загрузки в браузере..." -ForegroundColor Gray
@@ -82,6 +82,7 @@ while ($true) {
         }
     }
 }
+
 
 
 
