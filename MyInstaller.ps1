@@ -1,46 +1,69 @@
-# MyInstaller.ps1 - Основной скрипт с меню
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "    Моя утилита загрузки" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+# Настройка консоли
+$Host.UI.RawUI.WindowTitle = "Установщик драйвера"
+Clear-Host
 
-# Функция для загрузки файла
-function Download-File {
-    param([string]$url, [string]$output)
-    try {
-        Write-Host "Загружаем: $url" -ForegroundColor Yellow
-        Invoke-WebRequest -Uri $url -OutFile $output -UseBasicParsing
-        Write-Host "Файл сохранен: $output" -ForegroundColor Green
-    } catch {
-        Write-Host "Ошибка загрузки: $_" -ForegroundColor Red
-    }
-}
-
-# Главное меню
+# Основной цикл меню
 while ($true) {
-    Write-Host "`nВыберите действие:" -ForegroundColor White
-    Write-Host "    1) Скачать программу А"
-    Write-Host "    2) Скачать набор скриптов Б"
-    Write-Host "    3) Показать справку"
-    Write-Host "    0) Выход`n"
+    # Отрисовка меню
+    Write-Host "================================" -ForegroundColor Green
+    Write-Host "    Драйвера для принтеров" -ForegroundColor Green
+    Write-Host "================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "     1. Kyocera TWAIN Driver" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "     0. Выход" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "================================" -ForegroundColor Green
+    Write-Host ""
 
-    $choice = Read-Host "Ваш выбор (0-3)"
+    # Запрос выбора
+    $choice = Read-Host "Выберите"
 
+    # Обработка выбора
     switch ($choice) {
-        '1' {
-            Download-File -url "https://example.com/program.zip" -output "$env:USERPROFILE\Downloads\program.zip"
-        }
-        '2' {
-            Download-File -url "https://example.com/scripts.tar.gz" -output "$env:USERPROFILE\Downloads\scripts.tar.gz"
-        }
-        '3' {
-            Write-Host "Справка: этот инструмент загружает необходимые файлы."
-        }
         '0' {
             Write-Host "Выход." -ForegroundColor Cyan
             exit
         }
+        '1' {
+            # --- КОНФИГУРИРУЕМАЯ ЧАСТЬ: Настройки для Kyocera ---
+            $DriverName = "Kyocera TWAIN Driver"
+            # ССЫЛКА 1: Укажи прямую ссылку на скачивание .exe файла
+            $DownloadUrl = "https://example.com/path/to/Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
+            # ИМЯ ФАЙЛА: Как он сохранится локально (можно оставить как в ссылке)
+            $LocalFileName = "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
+            # ПАПКА: Где сохранить (временная папка текущего пользователя)
+            $DownloadPath = Join-Path -Path $env:TEMP -ChildPath $LocalFileName
+            # --- Конец конфигурируемой части ---
+
+            Write-Host "`n[Инфо] Выбран: $DriverName" -ForegroundColor Yellow
+            Write-Host "[Инфо] Начинаю загрузку..." -ForegroundColor Gray
+
+            try {
+                # Скачивание файла
+                Invoke-WebRequest -Uri $DownloadUrl -OutFile $DownloadPath -UseBasicParsing
+                
+                Write-Host "[Успех] Файл загружен в: $DownloadPath" -ForegroundColor Green
+                Write-Host "Давай установи меня!" -ForegroundColor Yellow
+                
+                # Запуск установщика
+                Start-Process -FilePath $DownloadPath -Wait
+                
+                Write-Host "[Инфо] Установка завершена (или была прервана пользователем)." -ForegroundColor Gray
+            }
+            catch {
+                Write-Host "[Ошибка] Не удалось загрузить или запустить файл." -ForegroundColor Red
+                Write-Host "[Детали] $($_.Exception.Message)" -ForegroundColor Red
+            }
+
+            Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
+            [Console]::ReadKey($true) | Out-Null
+        }
         default {
-            Write-Host "Неверный выбор." -ForegroundColor Red
+            Write-Host "`nАААААА НИЧЕГО НЕТ!" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Нажмите любую клавишу, чтобы продолжить..." -ForegroundColor Gray
+            [Console]::ReadKey($true) | Out-Null
         }
     }
 }
