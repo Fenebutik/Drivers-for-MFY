@@ -29,7 +29,7 @@ while ($true) {
             # --- КОНФИГУРИРУЕМАЯ ЧАСТЬ: Настройки для Kyocera ---
             $DriverName = "Kyocera TWAIN Driver"
             # ССЫЛКА 1: Укажи прямую ссылку на скачивание .exe файла
-            $DownloadUrl = "https://github.com/Fenebutik/Drivers-for-MFY/blob/main/Kyocera%20TWAIN%20Driver_2.1.2822_1.4rc9.exe"
+            $DownloadUrl = "https://github.com/Fenebutik/Drivers-for-MFY/blob/70c0377110127904b99d3b5f3570c722ac3a7011/Kyocera%20TWAIN%20Driver_2.1.2822_1.4rc9.exe"
             # ИМЯ ФАЙЛА: Как он сохранится локально (можно оставить как в ссылке)
             $LocalFileName = "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
             # ПАПКА: Где сохранить (временная папка текущего пользователя)
@@ -67,6 +67,7 @@ while ($true) {
         }
     }
 }
+
 
 
 
