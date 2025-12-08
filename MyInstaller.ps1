@@ -59,6 +59,21 @@ while ($true) {
             Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
             [Console]::ReadKey($true) | Out-Null
         }
+        '2' {
+    $DriverName = "Kyocera Ecosys P2040DN"
+    # Ссылка на страницу файла в Яндекс.Диске
+    $DownloadPageUrl = "https://disk.yandex.ru/d/xP_Jv6XVIArEGg"
+
+    Write-Host "`n[Инфо] Выбран: $DriverName" -ForegroundColor Yellow
+    Write-Host "[Инфо] Открываю страницу загрузки в браузере..." -ForegroundColor Gray
+
+    # Открываем ссылку в браузере по умолчанию
+    Start-Process $DownloadPageUrl
+
+    Write-Host "[Инфо] Пожалуйста, скачайте файл в открывшемся окне браузера." -ForegroundColor Green
+    Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
+    [Console]::ReadKey($true) | Out-Null
+}
         default {
             Write-Host "`nАААААА НИЧЕГО НЕТ!" -ForegroundColor Red
             Write-Host ""
@@ -67,6 +82,7 @@ while ($true) {
         }
     }
 }
+
 
 
 
