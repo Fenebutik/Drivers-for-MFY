@@ -77,7 +77,7 @@ function Show-VendorMenu {
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
     
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
-    Write-Host "  |   ВЫБЕРИТЕ ПРОИЗВОДИТЕЛЯ           |" -ForegroundColor Magenta
+    Write-Host "  |   ВЫБЕРИТЕ ПРОИЗВОДИТЕЛЯ             |" -ForegroundColor Magenta
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
     Write-Host ""
     
@@ -101,7 +101,7 @@ function Show-VendorMenu {
     if ($choice -eq '1488') {
         Write-Host "`n"
         Write-Host "   +--------------------------------+" -ForegroundColor Red
-        Write-Host "   |          ПАСХАЛКО             |" -ForegroundColor Red
+        Write-Host "   |          ПАСХАЛКО              |" -ForegroundColor Red
         Write-Host "   +--------------------------------+" -ForegroundColor Red
         Write-Host "`nНажмите любую клавишу, чтобы продолжить..." -ForegroundColor Gray
         [Console]::ReadKey($true) | Out-Null
@@ -119,7 +119,7 @@ function Show-ModelMenu {
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
     
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
-    Write-Host ("  |   ПРОИЗВОДИТЕЛЬ: {0,-18}   |" -f $SelectedVendor) -ForegroundColor Magenta
+    Write-Host ("  |   ПРОИЗВОДИТЕЛЬ: {0,-18}           |" -f $SelectedVendor) -ForegroundColor Magenta
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
     Write-Host ""
     
