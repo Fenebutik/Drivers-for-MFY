@@ -2,6 +2,10 @@
 $Host.UI.RawUI.WindowTitle = "Установщик драйверов принтеров"
 Clear-Host
 
+# Оптимизация производительности
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+
 # Установка правильной кодировки
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 chcp 65001 | Out-Null
@@ -26,6 +30,48 @@ $PrintersByVendor = [ordered]@{
         "Laser MFP 137fnw"
         "LaserJet M236sdw"
     )
+}
+
+# Хэш-таблица с прямыми ссылками для скачивания
+$DriverUrls = @{
+    "Kyocera" = @{
+        "TWAIN Driver (драйвер для сканирования)" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/KyoceraTWAINDriver2.1.2822_1.4rc9.exe"
+        "Ecosys P2040DN" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/P2040DN/kyocera.ecosys.p2040dn_pcl6_x64_v6.3.3003.msi"
+        "Ecosys M2135dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M2135dn/kyocera.ecosys.m2135dn_pcl6_x64_v6.4.3003.msi"
+        "Ecosys M3040dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M3040dn/kyocera.ecosys.m3040dn_pcl6_x64_v6.4.3003.msi"
+        "Ecosys M2040dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M2040dn/kyocera.ecosys.m2040dn_pcl6_x64_v6.4.3003.msi"
+        "MA2000" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/MA2000/Kyocera_MA2000_Driver.exe"
+    }
+    "Brother" = @{
+        "MFC-L2700DNR" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Brother/MFC-L2700DNR/Brother_MFC-L2700DNR_full.exe"
+    }
+    "HP" = @{
+        "Laser MFP 136a" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/136a/hp_Laser_MFP_136a_full.exe"
+        "LaserJet Pro MFP M125ra" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/M125ra/hp_LaserJet_Pro_MFP_M125ra_full.exe"
+        "Laser MFP 137fnw" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/137fnw/hp_Laser_MFP_137fnw_full.exe"
+        "LaserJet M236sdw" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/M236sdw/hp_LaserJet_M236sdw_full.exe"
+    }
+}
+
+# Хэш-таблица с именами файлов для сохранения
+$DriverFilenames = @{
+    "Kyocera" = @{
+        "TWAIN Driver (драйвер для сканирования)" = "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
+        "Ecosys P2040DN" = "kyocera.ecosys.p2040dn_pcl6_x64_v6.3.3003.msi"
+        "Ecosys M2135dn" = "kyocera.ecosys.m2135dn_pcl6_x64_v6.4.3003.msi"
+        "Ecosys M3040dn" = "kyocera.ecosys.m3040dn_pcl6_x64_v6.4.3003.msi"
+        "Ecosys M2040dn" = "kyocera.ecosys.m2040dn_pcl6_x64_v6.4.3003.msi"
+        "MA2000" = "Kyocera_MA2000_Driver.exe"
+    }
+    "Brother" = @{
+        "MFC-L2700DNR" = "Brother_MFC-L2700DNR_full.exe"
+    }
+    "HP" = @{
+        "Laser MFP 136a" = "hp_Laser_MFP_136a_full.exe"
+        "LaserJet Pro MFP M125ra" = "hp_LaserJet_Pro_MFP_M125ra_full.exe"
+        "Laser MFP 137fnw" = "hp_Laser_MFP_137fnw_full.exe"
+        "LaserJet M236sdw" = "hp_LaserJet_M236sdw_full.exe"
+    }
 }
 
 # Простые ASCII функции для меню
@@ -69,6 +115,114 @@ function Write-PrinterItem {
     Write-Host ("    {0,2}" -f $Number) -NoNewline -ForegroundColor Green
     Write-Host " | " -NoNewline -ForegroundColor Gray
     Write-Host $Model -ForegroundColor White
+}
+
+# Функция для проверки интернет-соединения
+function Test-InternetConnection {
+    try {
+        $test = Test-NetConnection -ComputerName "github.com" -Port 443 -InformationLevel Quiet
+        return $test
+    }
+    catch {
+        return $false
+    }
+}
+
+# Функция для ускоренной загрузки и установки
+function Install-PrinterDriver {
+    param(
+        [string]$Vendor,
+        [string]$Model,
+        [string]$DownloadUrl,
+        [string]$Filename
+    )
+    
+    $DownloadPath = Join-Path -Path $env:TEMP -ChildPath $Filename
+    
+    Write-Host "[Инфо] Начинаю загрузку: $Vendor $Model" -ForegroundColor Cyan
+    Write-Host "[Инфо] Источник: $DownloadUrl" -ForegroundColor Gray
+    
+    try {
+        # Проверяем интернет-соединение
+        if (-not (Test-InternetConnection)) {
+            Write-Host "[Ошибка] Отсутствует интернет-соединение!" -ForegroundColor Red
+            Write-Host "[Инфо] Проверьте подключение к сети и повторите попытку." -ForegroundColor Yellow
+            return
+        }
+        
+        # Проверяем, не скачан ли уже файл
+        if (Test-Path $DownloadPath) {
+            Write-Host "[Инфо] Файл уже существует локально." -ForegroundColor Green
+            Write-Host "[Вопрос] Использовать существующий файл? (Y/N)" -ForegroundColor Cyan -NoNewline
+            $useExisting = Read-Host
+            
+            if ($useExisting -in @('Y', 'y', 'Д', 'д')) {
+                Write-Host "[Инфо] Использую существующий файл." -ForegroundColor Gray
+            }
+            else {
+                # Удаляем и скачиваем заново
+                Remove-Item -Path $DownloadPath -Force -ErrorAction SilentlyContinue
+            }
+        }
+        
+        # Засекаем время загрузки
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        
+        # Загрузка файла
+        if (-not (Test-Path $DownloadPath)) {
+            Write-Host "[Инфо] Загрузка..." -ForegroundColor Gray
+            Invoke-WebRequest -Uri $DownloadUrl -OutFile $DownloadPath -UseBasicParsing
+        }
+        
+        $stopwatch.Stop()
+        
+        if (Test-Path $DownloadPath) {
+            $fileSize = (Get-Item $DownloadPath).Length / 1MB
+            $downloadSpeed = $fileSize / $stopwatch.Elapsed.TotalSeconds
+            
+            Write-Host "[Успех] Файл загружен за $($stopwatch.Elapsed.ToString('mm\:ss'))" -ForegroundColor Green
+            Write-Host "[Инфо] Размер: $($fileSize.ToString('F2')) MB | Скорость: $($downloadSpeed.ToString('F2')) MB/сек" -ForegroundColor Gray
+            Write-Host "[Инфо] Путь: $DownloadPath" -ForegroundColor Gray
+            
+            # Проверяем тип файла и запускаем установку
+            $ext = [System.IO.Path]::GetExtension($DownloadPath).ToLower()
+            
+            Write-Host "`n[Инфо] Запускаю установку..." -ForegroundColor Yellow
+            
+            switch ($ext) {
+                '.exe' {
+                    Start-Process -FilePath $DownloadPath -Wait
+                }
+                '.msi' {
+                    Start-Process "msiexec.exe" -ArgumentList "/i `"$DownloadPath`" /quiet /norestart" -Wait
+                }
+                default {
+                    Start-Process -FilePath $DownloadPath -Wait
+                }
+            }
+            
+            Write-Host "[Инфо] Установка завершена." -ForegroundColor Green
+            
+            # Предлагаем удалить временный файл
+            Write-Host "`n[Вопрос] Удалить временный файл? (Y/N)" -ForegroundColor Cyan -NoNewline
+            $deleteChoice = Read-Host
+            
+            if ($deleteChoice -in @('Y', 'y', 'Д', 'д', 'Yes', 'yes')) {
+                Remove-Item -Path $DownloadPath -Force -ErrorAction SilentlyContinue
+                Write-Host "[Инфо] Временный файл удален." -ForegroundColor Gray
+            }
+        }
+        else {
+            Write-Host "[Ошибка] Не удалось загрузить файл." -ForegroundColor Red
+        }
+    }
+    catch {
+        Write-Host "[Ошибка] Не удалось загрузить или установить драйвер." -ForegroundColor Red
+        Write-Host "[Детали] $($_.Exception.Message)" -ForegroundColor Red
+    }
+    finally {
+        $ProgressPreference = 'Continue'
+    }
 }
 
 # Функция для отображения меню выбора производителя
@@ -143,7 +297,7 @@ function Show-ModelMenu {
     return $choice
 }
 
-# Функция для получения action по выбранной модели
+# Функция для получения action по выбранной модели (для обратной совместимости)
 function Get-ActionForModel {
     param([string]$Vendor, [string]$Model)
     
@@ -204,52 +358,44 @@ while ($true) {
             Write-Host "`n[Инфо] Выбрано: $currentVendor $selectedModel" -ForegroundColor Yellow
             Write-Host ""
             
-            # Определяем action для выбранной модели
-            $action = Get-ActionForModel -Vendor $currentVendor -Model $selectedModel
-            
-            # ВАЖНО: Здесь старое ядро логики
-            switch ($action) {
-                '1' {
-                    # --- СТАРЫЙ ПРОВЕРЕННЫЙ БЛОК ДЛЯ ПУНКТА '1' (Kyocera TWAIN) ---
-                    $DriverName = "Kyocera TWAIN Driver"
-                    $DownloadUrl = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/KyoceraTWAINDriver2.1.2822_1.4rc9.exe"
-                    $LocalFileName = "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
-                    $DownloadPath = Join-Path -Path $env:TEMP -ChildPath $LocalFileName
-
-                    Write-Host "[Инфо] Начинаю загрузку..." -ForegroundColor Gray
-                    try {
-                        Invoke-WebRequest -Uri $DownloadUrl -OutFile $DownloadPath -UseBasicParsing
-                        Write-Host "[Успех] Файл загружен в: $DownloadPath" -ForegroundColor Green
-                        Write-Host "Давай установи меня!" -ForegroundColor Yellow
-                        Start-Process -FilePath $DownloadPath -Wait
-                        Write-Host "[Инфо] Установка завершена." -ForegroundColor Gray
+            # Проверяем, есть ли прямая ссылка для этой модели
+            if ($DriverUrls[$currentVendor] -and $DriverUrls[$currentVendor][$selectedModel]) {
+                $downloadUrl = $DriverUrls[$currentVendor][$selectedModel]
+                $filename = $DriverFilenames[$currentVendor][$selectedModel]
+                
+                # Устанавливаем драйвер
+                Install-PrinterDriver -Vendor $currentVendor -Model $selectedModel -DownloadUrl $downloadUrl -Filename $filename
+            }
+            else {
+                # Используем старую логику для особых случаев
+                $action = Get-ActionForModel -Vendor $currentVendor -Model $selectedModel
+                
+                switch ($action) {
+                    '1' {
+                        # Kyocera TWAIN Driver
+                        Install-PrinterDriver -Vendor $currentVendor -Model $selectedModel `
+                            -DownloadUrl "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/KyoceraTWAINDriver2.1.2822_1.4rc9.exe" `
+                            -Filename "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
                     }
-                    catch {
-                        Write-Host "[Ошибка] Не удалось загрузить или запустить файл." -ForegroundColor Red
-                        Write-Host "[Детали] $($_.Exception.Message)" -ForegroundColor Red
+                    '2' {
+                        # Яндекс.Диск ссылка
+                        $DownloadPageUrl = "https://disk.yandex.ru/d/YFavU20LUBodgA"
+                        Write-Host "[Инфо] Открываю страницу загрузки в браузере..." -ForegroundColor Gray
+                        try {
+                            Start-Process "msedge.exe" -ArgumentList $DownloadPageUrl -ErrorAction Stop
+                            Write-Host "[Успех] Страница открыта. Скачайте файл вручную." -ForegroundColor Green
+                        }
+                        catch {
+                            Start-Process $DownloadPageUrl
+                        }
                     }
-                }
-                '2' {
-                    # --- СТАРЫЙ БЛОК ДЛЯ ПУНКТА '2' (Яндекс.Диск в браузере) ---
-                    $DriverName = "KyoceraEcosysP2040DN"
-                    $DownloadPageUrl = "https://disk.yandex.ru/d/YFavU20LUBodgA"
-
-                    Write-Host "[Инфо] Открываю страницу загрузки в браузере..." -ForegroundColor Gray
-                    try {
-                        Start-Process "msedge.exe" -ArgumentList $DownloadPageUrl -ErrorAction Stop
-                        Write-Host "[Успех] Страница открыта. Скачайте файл вручную." -ForegroundColor Green
+                    default {
+                        Write-Host "[Инфо] Для этой модели пока нет автоматической установки." -ForegroundColor Yellow
+                        Write-Host "      Свяжитесь с администратором для добавления драйвера." -ForegroundColor Gray
                     }
-                    catch {
-                        Write-Host "[Предупреждение] Пробую браузер по умолчанию..." -ForegroundColor Yellow
-                        Start-Process $DownloadPageUrl
-                    }
-                }
-                'NEW_PRINTER' {
-                    # --- ЗАГЛУШКА ДЛЯ НОВЫХ ПРИНТЕРОВ ---
-                    Write-Host "[Инфо] Функция установки для этого принтера в разработке." -ForegroundColor Yellow
-                    Write-Host "      Чтобы добавить драйвер, обновите хэш-таблицу DriverUrls" -ForegroundColor Gray
                 }
             }
+            
             Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
             [Console]::ReadKey($true) | Out-Null
         }
