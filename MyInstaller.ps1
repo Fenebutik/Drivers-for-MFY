@@ -2,6 +2,9 @@
 $Host.UI.RawUI.WindowTitle = "Установщик драйверов принтеров"
 Clear-Host
 
+# Исправляем кодировку для корректного отображения символов
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 # Структура данных: Производитель -> Список моделей
 $PrintersByVendor = [ordered]@{
     "Kyocera" = @(
@@ -24,30 +27,34 @@ $PrintersByVendor = [ordered]@{
     )
 }
 
-# Функции псевдографики для меню
+# Функции псевдографики для меню (ИСПРАВЛЕНЫ)
 function Write-MenuHeader {
     param([string]$Title)
     $fullTitle = "  $Title  "
-    $line = '═' * ($Host.UI.RawUI.WindowSize.Width - 4)
+    # Используем фиксированную ширину для стабильности
+    $width = 50
+    $line = '═' * $width
     Write-Host "╔$($line)╗" -ForegroundColor DarkCyan
     Write-Host "║" -NoNewline -ForegroundColor DarkCyan
-    Write-Host "$fullTitle" -NoNewline -ForegroundColor Cyan
-    Write-Host "$(' ' * ($line.Length - $fullTitle.Length))║" -ForegroundColor DarkCyan
+    $padding = [Math]::Max(0, ($width - $fullTitle.Length))
+    $leftPad = [Math]::Floor($padding / 2)
+    $rightPad = $padding - $leftPad
+    Write-Host ("{0}{1}{2}" -f (' ' * $leftPad), $fullTitle, (' ' * $rightPad)) -NoNewline -ForegroundColor Cyan
+    Write-Host "║" -ForegroundColor DarkCyan
     Write-Host "╚$($line)╝" -ForegroundColor DarkCyan
     Write-Host ""
 }
 
 function Write-VendorBlock {
     param([int]$Number, [string]$VendorName)
-    $fixedWidth = 20
+    # ФИКСИРОВАННАЯ ширина для всех блоков
+    $fixedWidth = 30
     $displayText = " $VendorName "
-    $displayText = $displayText.PadRight($fixedWidth, ' ')
-    $line = '─' * $fixedWidth
+    $line = '─' * ($fixedWidth - 2)  # -2 для угловых символов
     
+    # Корректное выравнивание номера и названия
     Write-Host "  ┌$($line)┐" -ForegroundColor DarkYellow
-    Write-Host ("  │" ) -NoNewline -ForegroundColor DarkYellow
-    Write-Host (" {0,2}" -f $Number) -NoNewline -ForegroundColor Green
-    Write-Host " $displayText" -NoNewline -ForegroundColor Yellow
+    Write-Host ("  │ {0,2} {1}" -f $Number, $VendorName.PadRight($fixedWidth - 7, ' ')) -NoNewline -ForegroundColor Yellow
     Write-Host "│" -ForegroundColor DarkYellow
     Write-Host "  └$($line)┘" -ForegroundColor DarkYellow
 }
@@ -64,9 +71,9 @@ function Show-VendorMenu {
     Clear-Host
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
     
-    Write-Host "  ╔══════════════════════════════╗" -ForegroundColor DarkMagenta
-    Write-Host "  ║   ВЫБЕРИТЕ ПРОИЗВОДИТЕЛЯ   ║" -ForegroundColor Magenta
-    Write-Host "  ╚══════════════════════════════╝" -ForegroundColor DarkMagenta
+    Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor DarkMagenta
+    Write-Host "  ║   ВЫБЕРИТЕ ПРОИЗВОДИТЕЛЯ           ║" -ForegroundColor Magenta
+    Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor DarkMagenta
     Write-Host ""
     
     $vendorNumber = 1
@@ -76,12 +83,12 @@ function Show-VendorMenu {
     }
     
     Write-Host ""
-    Write-Host "  ════════════════════════════════" -ForegroundColor DarkGray
+    Write-Host "  ═══════════════════════════════════════" -ForegroundColor DarkGray
     Write-Host ("    {0,2}" -f 0) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
     Write-Host "Выход" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  ════════════════════════════════" -ForegroundColor DarkCyan
+    Write-Host "  ═══════════════════════════════════════" -ForegroundColor DarkCyan
     
     $choice = Read-Host "`n  Введите номер производителя"
     
@@ -107,7 +114,7 @@ function Show-ModelMenu {
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
     
     Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor DarkMagenta
-    Write-Host ("  ║   ПРОИЗВОДИТЕЛЬ: {0,-20}   ║" -f $SelectedVendor) -ForegroundColor Magenta
+    Write-Host ("  ║   ПРОИЗВОДИТЕЛЬ: {0,-18}   ║" -f $SelectedVendor) -ForegroundColor Magenta
     Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor DarkMagenta
     Write-Host ""
     
@@ -120,12 +127,12 @@ function Show-ModelMenu {
     }
     
     Write-Host ""
-    Write-Host "  ════════════════════════════════" -ForegroundColor DarkGray
+    Write-Host "  ═══════════════════════════════════════" -ForegroundColor DarkGray
     Write-Host ("    {0,2}" -f 0) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
     Write-Host "Назад" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  ════════════════════════════════" -ForegroundColor DarkCyan
+    Write-Host "  ═══════════════════════════════════════" -ForegroundColor DarkCyan
     
     $choice = Read-Host "`n  Введите номер модели"
     return $choice
