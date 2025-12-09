@@ -36,20 +36,12 @@ $PrintersByVendor = [ordered]@{
 $DriverUrls = @{
     "Kyocera" = @{
         "TWAIN Driver (драйвер для сканирования)" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/KyoceraTWAINDriver2.1.2822_1.4rc9.exe"
-        "Ecosys P2040DN" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/P2040DN/kyocera.ecosys.p2040dn_pcl6_x64_v6.3.3003.msi"
-        "Ecosys M2135dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M2135dn/kyocera.ecosys.m2135dn_pcl6_x64_v6.4.3003.msi"
-        "Ecosys M3040dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M3040dn/kyocera.ecosys.m3040dn_pcl6_x64_v6.4.3003.msi"
-        "Ecosys M2040dn" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/M2040dn/kyocera.ecosys.m2040dn_pcl6_x64_v6.4.3003.msi"
-        "MA2000" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Kyocera/MA2000/Kyocera_MA2000_Driver.exe"
     }
+
     "Brother" = @{
-        "MFC-L2700DNR" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/Brother/MFC-L2700DNR/Brother_MFC-L2700DNR_full.exe"
     }
+
     "HP" = @{
-        "Laser MFP 136a" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/136a/hp_Laser_MFP_136a_full.exe"
-        "LaserJet Pro MFP M125ra" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/M125ra/hp_LaserJet_Pro_MFP_M125ra_full.exe"
-        "Laser MFP 137fnw" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/137fnw/hp_Laser_MFP_137fnw_full.exe"
-        "LaserJet M236sdw" = "https://github.com/Fenebutik/Drivers-for-MFY/raw/refs/heads/main/HP/M236sdw/hp_LaserJet_M236sdw_full.exe"
     }
 }
 
@@ -57,20 +49,10 @@ $DriverUrls = @{
 $DriverFilenames = @{
     "Kyocera" = @{
         "TWAIN Driver (драйвер для сканирования)" = "Kyocera_TWAIN_Driver_2.1.2822_1.4rc9.exe"
-        "Ecosys P2040DN" = "kyocera.ecosys.p2040dn_pcl6_x64_v6.3.3003.msi"
-        "Ecosys M2135dn" = "kyocera.ecosys.m2135dn_pcl6_x64_v6.4.3003.msi"
-        "Ecosys M3040dn" = "kyocera.ecosys.m3040dn_pcl6_x64_v6.4.3003.msi"
-        "Ecosys M2040dn" = "kyocera.ecosys.m2040dn_pcl6_x64_v6.4.3003.msi"
-        "MA2000" = "Kyocera_MA2000_Driver.exe"
     }
     "Brother" = @{
-        "MFC-L2700DNR" = "Brother_MFC-L2700DNR_full.exe"
     }
     "HP" = @{
-        "Laser MFP 136a" = "hp_Laser_MFP_136a_full.exe"
-        "LaserJet Pro MFP M125ra" = "hp_LaserJet_Pro_MFP_M125ra_full.exe"
-        "Laser MFP 137fnw" = "hp_Laser_MFP_137fnw_full.exe"
-        "LaserJet M236sdw" = "hp_LaserJet_M236sdw_full.exe"
     }
 }
 
