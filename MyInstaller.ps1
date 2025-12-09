@@ -3,7 +3,6 @@ $Host.UI.RawUI.WindowTitle = "Установщик драйверов принт
 Clear-Host
 
 # Структура данных: Производитель -> Список моделей
-# ВНИМАНИЕ: "Особые" драйверы теперь внутри Kyocera
 $PrintersByVendor = [ordered]@{
     "Kyocera" = @(
         "TWAIN Driver (драйвер для сканирования)"  # Пункт 1 (старый '1')
@@ -39,102 +38,165 @@ function Write-MenuHeader {
 }
 
 function Write-VendorBlock {
-    param([string]$VendorName)
-    # Фиксированная ширина для всех заголовков (можно изменить)
+    param([int]$Number, [string]$VendorName)
     $fixedWidth = 20
-    $paddedName = "  $VendorName  ".PadRight($fixedWidth, ' ')
+    $displayText = " $VendorName "
+    $displayText = $displayText.PadRight($fixedWidth, ' ')
     $line = '─' * $fixedWidth
+    
     Write-Host "  ┌$($line)┐" -ForegroundColor DarkYellow
-    Write-Host "  │$($paddedName)│" -ForegroundColor Yellow
+    Write-Host ("  │" ) -NoNewline -ForegroundColor DarkYellow
+    Write-Host (" {0,2}" -f $Number) -NoNewline -ForegroundColor Green
+    Write-Host " $displayText" -NoNewline -ForegroundColor Yellow
+    Write-Host "│" -ForegroundColor DarkYellow
     Write-Host "  └$($line)┘" -ForegroundColor DarkYellow
 }
 
 function Write-PrinterItem {
-    param([int]$Number, [string]$Vendor, [string]$Model)
+    param([int]$Number, [string]$Model)
     Write-Host ("    {0,2}" -f $Number) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
-    Write-Host "$Vendor $Model" -ForegroundColor White
+    Write-Host $Model -ForegroundColor White
 }
 
-# Список ВСЕХ пунктов меню в порядке их отображения.
-# ВАЖНО: Теперь особые драйверы (пункты 1 и 2) внутри Kyocera
-$AllMenuItems = @()
-
-# Собираем ВСЕ пункты из структурированного списка в плоский массив
-$itemCounter = 1 # Начинаем нумерацию с 1
-foreach ($vendor in $PrintersByVendor.Keys) {
-    foreach ($model in $PrintersByVendor[$vendor]) {
-        # Определяем Action на основе текста модели
-        $action = 'NEW_PRINTER'
-        if ($model -eq "TWAIN Driver (драйвер для сканирования)") {
-            $action = '1'
-        }
-        elseif ($model -eq "Ecosys P2040DN (браузер)") {
-            $action = '2'
-        }
-        
-        $AllMenuItems += @{
-            DisplayText = "$vendor $model"
-            Action = $action
-            Vendor = $vendor
-            Model = $model
-        }
-        $itemCounter++
-    }
-}
-
-# ==================== ГЛАВНЫЙ ЦИКЛ МЕНЮ ====================
-while ($true) {
+# Функция для отображения меню выбора производителя
+function Show-VendorMenu {
     Clear-Host
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
-
-    # Вывод всех принтеров, сгруппированных по производителям
-    $currentIndex = 0
+    
+    Write-Host "  ╔══════════════════════════════╗" -ForegroundColor DarkMagenta
+    Write-Host "  ║   ВЫБЕРИТЕ ПРОИЗВОДИТЕЛЯ   ║" -ForegroundColor Magenta
+    Write-Host "  ╚══════════════════════════════╝" -ForegroundColor DarkMagenta
+    Write-Host ""
+    
+    $vendorNumber = 1
     foreach ($vendor in $PrintersByVendor.Keys) {
-        Write-VendorBlock -VendorName $vendor
-        $vendorModels = $PrintersByVendor[$vendor]
-        foreach ($model in $vendorModels) {
-            Write-PrinterItem -Number ($currentIndex + 1) -Vendor $vendor -Model $model
-            $currentIndex++
-        }
-        Write-Host ""
+        Write-VendorBlock -Number $vendorNumber -VendorName $vendor
+        $vendorNumber++
     }
-
-    # Вывод пункта "Выход"
+    
+    Write-Host ""
     Write-Host "  ════════════════════════════════" -ForegroundColor DarkGray
     Write-Host ("    {0,2}" -f 0) -NoNewline -ForegroundColor Green
     Write-Host " │ " -NoNewline -ForegroundColor Gray
     Write-Host "Выход" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  ════════════════════════════════" -ForegroundColor DarkCyan
-
-    # Запрос выбора
-    $choice = Read-Host "`n  Введите номер пункта"
-
+    
+    $choice = Read-Host "`n  Введите номер производителя"
+    
     # ========== ПАСХАЛКА ==========
     if ($choice -eq '1488') {
         Write-Host "`n"
         Write-Host "   ╔════════════════════════════════╗" -ForegroundColor Red
         Write-Host "   ║          ПАСХАЛКО             ║" -ForegroundColor Red
         Write-Host "   ╚════════════════════════════════╝" -ForegroundColor Red
-        Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
+        Write-Host "`nНажмите любую клавишу, чтобы продолжить..." -ForegroundColor Gray
         [Console]::ReadKey($true) | Out-Null
-        continue # Возвращаемся в начало цикла (показываем меню снова)
+        return 'back'
     }
+    
+    return $choice
+}
 
-    # Обработка выбора
-    switch ($choice) {
-        '0' {
+# Функция для отображения меню выбора модели
+function Show-ModelMenu {
+    param([string]$SelectedVendor)
+    
+    Clear-Host
+    Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
+    
+    Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor DarkMagenta
+    Write-Host ("  ║   ПРОИЗВОДИТЕЛЬ: {0,-20}   ║" -f $SelectedVendor) -ForegroundColor Magenta
+    Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor DarkMagenta
+    Write-Host ""
+    
+    $models = $PrintersByVendor[$SelectedVendor]
+    $modelNumber = 1
+    
+    foreach ($model in $models) {
+        Write-PrinterItem -Number $modelNumber -Model $model
+        $modelNumber++
+    }
+    
+    Write-Host ""
+    Write-Host "  ════════════════════════════════" -ForegroundColor DarkGray
+    Write-Host ("    {0,2}" -f 0) -NoNewline -ForegroundColor Green
+    Write-Host " │ " -NoNewline -ForegroundColor Gray
+    Write-Host "Назад" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  ════════════════════════════════" -ForegroundColor DarkCyan
+    
+    $choice = Read-Host "`n  Введите номер модели"
+    return $choice
+}
+
+# Функция для получения action по выбранной модели
+function Get-ActionForModel {
+    param([string]$Vendor, [string]$Model)
+    
+    if ($Vendor -eq "Kyocera") {
+        if ($Model -eq "TWAIN Driver (драйвер для сканирования)") {
+            return '1'
+        }
+        elseif ($Model -eq "Ecosys P2040DN (браузер)") {
+            return '2'
+        }
+    }
+    
+    return 'NEW_PRINTER'
+}
+
+# ==================== ГЛАВНЫЙ ЦИКЛ МЕНЮ ====================
+$currentVendor = $null
+
+while ($true) {
+    # Если производитель не выбран, показываем меню производителей
+    if (-not $currentVendor) {
+        $choice = Show-VendorMenu
+        
+        if ($choice -eq 'back') {
+            continue
+        }
+        elseif ($choice -eq '0') {
             Write-Host "`n[Инфо] Выход." -ForegroundColor Cyan
             exit
         }
-        { [int]$_ -ge 1 -and [int]$_ -le $AllMenuItems.Count } {
-            $selectedItem = $AllMenuItems[[int]$choice - 1]
-            Write-Host "`n[Инфо] Выбрано: $($selectedItem.DisplayText)" -ForegroundColor Yellow
+        elseif ([int]$choice -ge 1 -and [int]$choice -le $PrintersByVendor.Count) {
+            $vendorIndex = [int]$choice - 1
+            $vendorNames = @($PrintersByVendor.Keys)
+            $currentVendor = $vendorNames[$vendorIndex]
+            continue
+        }
+        else {
+            Write-Host "`n[Ошибка] Неверный выбор: $choice" -ForegroundColor Red
+            Write-Host "Нажмите любую клавишу, чтобы продолжить..." -ForegroundColor Gray
+            [Console]::ReadKey($true) | Out-Null
+            continue
+        }
+    }
+    else {
+        # Показываем меню моделей выбранного производителя
+        $choice = Show-ModelMenu -SelectedVendor $currentVendor
+        
+        if ($choice -eq '0') {
+            $currentVendor = $null
+            continue
+        }
+        
+        $models = $PrintersByVendor[$currentVendor]
+        if ([int]$choice -ge 1 -and [int]$choice -le $models.Count) {
+            $modelIndex = [int]$choice - 1
+            $selectedModel = $models[$modelIndex]
+            
+            Write-Host "`n[Инфо] Выбрано: $currentVendor $selectedModel" -ForegroundColor Yellow
             Write-Host ""
-
-            # ВАЖНО: Здесь старое ядро логики. Action определяется автоматически
-            switch ($selectedItem.Action) {
+            
+            # Определяем action для выбранной модели
+            $action = Get-ActionForModel -Vendor $currentVendor -Model $selectedModel
+            
+            # ВАЖНО: Здесь старое ядро логики
+            switch ($action) {
                 '1' {
                     # --- СТАРЫЙ ПРОВЕРЕННЫЙ БЛОК ДЛЯ ПУНКТА '1' (Kyocera TWAIN) ---
                     $DriverName = "Kyocera TWAIN Driver"
@@ -179,7 +241,7 @@ while ($true) {
             Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
             [Console]::ReadKey($true) | Out-Null
         }
-        default {
+        else {
             Write-Host "`n[Ошибка] Неверный выбор: $choice" -ForegroundColor Red
             Write-Host "Нажмите любую клавишу, чтобы продолжить..." -ForegroundColor Gray
             [Console]::ReadKey($true) | Out-Null
