@@ -3,21 +3,24 @@ $Host.UI.RawUI.WindowTitle = "Установщик драйверов принт
 Clear-Host
 
 # Структура данных: Производитель -> Список моделей
+# ВНИМАНИЕ: "Особые" драйверы теперь внутри Kyocera
 $PrintersByVendor = [ordered]@{
     "Kyocera" = @(
-        "Ecosys P2040DN",
-        "Ecosys M2135dn",
-        "Ecosys M3040dn",
-        "Ecosys M2040dn",
+        "TWAIN Driver (драйвер для сканирования)"  # Пункт 1 (старый '1')
+        "Ecosys P2040DN (браузер)"                 # Пункт 2 (старый '2')
+        "Ecosys P2040DN"
+        "Ecosys M2135dn"
+        "Ecosys M3040dn"
+        "Ecosys M2040dn"
         "MA2000"
     )
     "Brother" = @(
         "MFC-L2700DNR"
     )
     "HP" = @(
-        "Laser MFP 136a",
-        "LaserJet Pro MFP M125ra",
-        "Laser MFP 137fnw",
+        "Laser MFP 136a"
+        "LaserJet Pro MFP M125ra"
+        "Laser MFP 137fnw"
         "LaserJet M236sdw"
     )
 }
@@ -37,10 +40,13 @@ function Write-MenuHeader {
 
 function Write-VendorBlock {
     param([string]$VendorName)
-    $header = "  $VendorName  "
-    Write-Host "  ┌$('─' * ($header.Length))┐" -ForegroundColor DarkYellow
-    Write-Host "  │$header│" -ForegroundColor Yellow
-    Write-Host "  └$('─' * ($header.Length))┘" -ForegroundColor DarkYellow
+    # Фиксированная ширина для всех заголовков (можно изменить)
+    $fixedWidth = 20
+    $paddedName = "  $VendorName  ".PadRight($fixedWidth, ' ')
+    $line = '─' * $fixedWidth
+    Write-Host "  ┌$($line)┐" -ForegroundColor DarkYellow
+    Write-Host "  │$($paddedName)│" -ForegroundColor Yellow
+    Write-Host "  └$($line)┘" -ForegroundColor DarkYellow
 }
 
 function Write-PrinterItem {
@@ -51,27 +57,25 @@ function Write-PrinterItem {
 }
 
 # Список ВСЕХ пунктов меню в порядке их отображения.
-# Первые два пункта — "особые" драйвера, которые уже были.
-$AllMenuItems = @(
-    # ПУНКТ 1: Существующий специальный драйвер Kyocera TWAIN
-    @{
-        DisplayText = "Kyocera TWAIN Driver"
-        Action = '1' # Это триггер для switch в старой логике
-    }
-    # ПУНКТ 2: Существующий специальный драйвер для открытия в браузере
-    @{
-        DisplayText = "Kyocera Ecosys P2040DN (браузер)"
-        Action = '2' # Это триггер для switch в старой логике
-    }
-)
+# ВАЖНО: Теперь особые драйверы (пункты 1 и 2) внутри Kyocera
+$AllMenuItems = @()
 
-# Добавляем ВСЕ принтеры из структурированного списка в плоский массив
-$itemCounter = $AllMenuItems.Count + 1
+# Собираем ВСЕ пункты из структурированного списка в плоский массив
+$itemCounter = 1 # Начинаем нумерацию с 1
 foreach ($vendor in $PrintersByVendor.Keys) {
     foreach ($model in $PrintersByVendor[$vendor]) {
+        # Определяем Action на основе текста модели
+        $action = 'NEW_PRINTER'
+        if ($model -eq "TWAIN Driver (драйвер для сканирования)") {
+            $action = '1'
+        }
+        elseif ($model -eq "Ecosys P2040DN (браузер)") {
+            $action = '2'
+        }
+        
         $AllMenuItems += @{
             DisplayText = "$vendor $model"
-            Action = 'NEW_PRINTER' # Маркер для новых пунктов (пока без своей логики)
+            Action = $action
             Vendor = $vendor
             Model = $model
         }
@@ -84,19 +88,8 @@ while ($true) {
     Clear-Host
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
 
-    # Вывод наших двух первых "особых" пунктов
-    Write-Host "  ┌─────────────────────────────┐" -ForegroundColor DarkMagenta
-    Write-Host "  │   Специальные драйверы   │" -ForegroundColor Magenta
-    Write-Host "  └─────────────────────────────┘" -ForegroundColor DarkMagenta
-    for ($i = 0; $i -lt 2; $i++) {
-        Write-Host ("    {0,2}" -f ($i + 1)) -NoNewline -ForegroundColor Green
-        Write-Host " │ " -NoNewline -ForegroundColor Gray
-        Write-Host $AllMenuItems[$i].DisplayText -ForegroundColor White
-    }
-    Write-Host ""
-
     # Вывод всех принтеров, сгруппированных по производителям
-    $currentIndex = 2 # Начинаем с третьего пункта в общем списке
+    $currentIndex = 0
     foreach ($vendor in $PrintersByVendor.Keys) {
         Write-VendorBlock -VendorName $vendor
         $vendorModels = $PrintersByVendor[$vendor]
@@ -118,6 +111,17 @@ while ($true) {
     # Запрос выбора
     $choice = Read-Host "`n  Введите номер пункта"
 
+    # ========== ПАСХАЛКА ==========
+    if ($choice -eq '1488') {
+        Write-Host "`n"
+        Write-Host "   ╔════════════════════════════════╗" -ForegroundColor Red
+        Write-Host "   ║          ПАСХАЛКО             ║" -ForegroundColor Red
+        Write-Host "   ╚════════════════════════════════╝" -ForegroundColor Red
+        Write-Host "`nНажмите любую клавишу, чтобы вернуться в меню..." -ForegroundColor Gray
+        [Console]::ReadKey($true) | Out-Null
+        continue # Возвращаемся в начало цикла (показываем меню снова)
+    }
+
     # Обработка выбора
     switch ($choice) {
         '0' {
@@ -129,7 +133,7 @@ while ($true) {
             Write-Host "`n[Инфо] Выбрано: $($selectedItem.DisplayText)" -ForegroundColor Yellow
             Write-Host ""
 
-            # ВАЖНО: Здесь старое ядро логики.
+            # ВАЖНО: Здесь старое ядро логики. Action определяется автоматически
             switch ($selectedItem.Action) {
                 '1' {
                     # --- СТАРЫЙ ПРОВЕРЕННЫЙ БЛОК ДЛЯ ПУНКТА '1' (Kyocera TWAIN) ---
