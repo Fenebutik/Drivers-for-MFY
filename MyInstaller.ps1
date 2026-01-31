@@ -255,7 +255,7 @@ function Show-ModelMenu {
     Write-MenuHeader -Title "УСТАНОВЩИК ДРАЙВЕРОВ ПРИНТЕРОВ"
     
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
-    Write-Host ("  |   ПРОИЗВОДИТЕЛЬ: {0,-18}           |" -f $SelectedVendor) -ForegroundColor Magenta
+    Write-Host ("  |   ПРОИЗВОДИТЕЛЬ: {0,-18}            |" -f $SelectedVendor) -ForegroundColor Magenta
     Write-Host "  +--------------------------------------+" -ForegroundColor DarkMagenta
     Write-Host ""
     
@@ -387,4 +387,5 @@ while ($true) {
             [Console]::ReadKey($true) | Out-Null
         }
     }
+
 }
